@@ -27,7 +27,7 @@ Cli::printLn();
 
 $uri = getenv('NATS');
 
-if (!is_string($uri) || $uri === '') {
+if (!\is_string($uri) || $uri === '') {
     $uri = 'tcp://nats:4222';
 }
 
