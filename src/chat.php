@@ -6,7 +6,10 @@ namespace Podlodka\PhpCrew\Nats;
 
 use Thesis\Nats\Client;
 use Thesis\Nats\Config;
-use Thesis\Nats\Delivery;
+use Thesis\Nats\JetStream\Api\ConsumerConfig;
+use Thesis\Nats\JetStream\Api\DeliverPolicy;
+use Thesis\Nats\JetStream\Api\StreamConfig;
+use Thesis\Nats\JetStream\Delivery;
 use Thesis\Nats\Message as NatsMessage;
 use function Amp\async;
 use function Amp\ByteStream\getStdin;
@@ -19,19 +22,34 @@ $id = Cli::ask('Chat ID', '\w+');
 $name = Cli::ask('Your nickname', '\w+');
 
 $natsCore = new Client(Config::fromURI('tcp://nats:4222'));
+$jetStream = $natsCore->jetStream();
 
-$subscription = $natsCore->subscribe("chat.{$id}", static function (Delivery $delivery): void {
-    $message = deserialize($delivery->message->payload, Message::class);
+$subscription = $jetStream
+    ->createOrUpdateStream(new StreamConfig(
+        name: 'CHATS',
+        subjects: ['chat.*'],
+    ))
+    ->createOrUpdateConsumer(new ConsumerConfig(
+        durableName: "CHAT_{$id}_SENDER_{$name}_DURABLE_NEW",
+        deliverPolicy: DeliverPolicy::New,
+        filterSubjects: [
+            "chat.{$id}",
+        ],
+    ))
+    ->pull(static function (Delivery $delivery): void {
+        $message = deserialize($delivery->message->payload, Message::class);
 
-    Cli::printLn(
-        <<<TXT
-            {$message->sender}: {$message->text}
-            ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-            TXT,
-    );
-});
+        Cli::printLn(
+            <<<TXT
+                {$message->sender}: {$message->text}
+                ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+                TXT,
+        );
 
-$input = async(static function () use ($name, $natsCore, $id): void {
+        $delivery->ack();
+    });
+
+$input = async(static function () use ($name, $jetStream, $id): void {
     $stdin = getStdin();
 
     while (null !== $text = $stdin->read()) {
@@ -41,7 +59,7 @@ $input = async(static function () use ($name, $natsCore, $id): void {
             continue;
         }
 
-        $natsCore->publish("chat.{$id}", new NatsMessage(
+        $jetStream->publish("chat.{$id}", new NatsMessage(
             serialize(new Message($name, $text)),
         ));
     }
