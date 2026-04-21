@@ -28,6 +28,7 @@ $subscription = $natsCore->subscribe('math.*', static function (Delivery $delive
 
         $args = deserialize($delivery->message->payload, Args::class);
 
+        /** @phpstan-ignore match.unhandled */
         $result = match ($delivery->subject) {
             'math.add' => $args->a + $args->b,
             'math.multiply' => $args->a * $args->b,
