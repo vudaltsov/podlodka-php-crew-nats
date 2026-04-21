@@ -1,14 +1,27 @@
 services:
   php:
-    # noinspection ComposeUnknownValues
-    image: ghcr.io/phpyh/php:${PHP_IMAGE_VERSION:?Make sure `PHP_IMAGE_VERSION` is declared in `.env`}
-    user: ${CONTAINER_USER:-}
+    build:
+      dockerfile: docker/php/Dockerfile
+    user: ${HOST_USER:-}
+    working_dir: /workspace
     environment:
-      INSIDE_DEVCONTAINER: true
       HISTFILE: /workspace/var/.docker_history
-      COMPOSER_CACHE_DIR: /workspace/var/.composer_cache
-    tty: true
-    init: true
     volumes:
       - .:/workspace:cached
-    working_dir: /workspace
+    networks:
+      - podlodka.php_crew.nats
+    tty: true
+    init: true
+
+  nats:
+    image: nats:2.10
+    command: -c /etc/nats/server.conf
+    volumes:
+      - ./docker/nats/server.conf:/etc/nats/server.conf
+    ports:
+      - "8222:8222"
+    networks:
+      - podlodka.php_crew.nats
+
+networks:
+  podlodka.php_crew.nats: ~

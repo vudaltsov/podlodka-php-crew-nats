@@ -1,6 +1,5 @@
 {
-    "name": "phpyh/nats",
-    "description": "Phpyh Nats",
+    "license": "MIT",
     "type": "project",
     "authors": [
         {
@@ -9,25 +8,22 @@
         }
     ],
     "require": {
-        "php": "^8.5"
+        "php": "^8.5",
+        "ext-pcntl": "*",
+        "amphp/byte-stream": "^2.1.2",
+        "thesis/exceptionally": "^0.3.0",
+        "thesis/nats": "^0.4.1"
     },
-    "config": {
-        "sort-packages": true,
-        "bump-after-update": true
-    },
-    "license": "MIT",
     "autoload": {
         "psr-4": {
-            "Phpyh\\Nats\\": "src/"
-        }
+            "Podlodka\\PhpCrew\\Nats\\": "src/"
+        },
+        "files": [
+            "src/deserialize.php"
+        ]
     },
-    "autoload-dev": {
-        "psr-4": {
-            "Phpyh\\Nats\\": "tests/"
-        }
-    },
-    "require-dev": {
-        "phpunit/phpunit": "^12.4",
-        "symfony/var-dumper": "^8.0"
+    "config": {
+        "bump-after-update": true,
+        "sort-packages": true
     }
 }
