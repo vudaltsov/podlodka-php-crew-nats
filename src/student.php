@@ -23,7 +23,7 @@ for ($i = 0; $i < 1_000; ++$i) {
         $b = random_int(0, 100);
 
         $sum = $natsCore
-            ->request('math.add', new Message(serialize(new Args($a, $b))), new TimeoutCancellation(1))
+            ->request('math.add', new Message(serialize(new Args($a, $b))), new TimeoutCancellation(10))
             ->message
             ->payload;
 
