@@ -43,7 +43,7 @@ $subscription = $natsCore->subscribe('math.*', static function (Delivery $delive
     })->finally(static function () use (&$coroutines, $delivery): void {
         unset($coroutines[spl_object_id($delivery)]);
     });
-});
+}, queueGroup: 'Calculators');
 
 Cli::printLn('Ready');
 
