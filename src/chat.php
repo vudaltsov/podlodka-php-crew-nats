@@ -18,10 +18,20 @@ use function Amp\trapSignal;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-$id = Cli::ask('Chat ID', '\w+');
-$name = Cli::ask('Your nickname', '\w+');
+Cli::printLn('Привет! Добро пожаловать в NATS-чат!' . PHP_EOL);
 
-$natsCore = new Client(Config::fromURI('tcp://nats:4222'));
+$id = Cli::ask('ID чата', '\w+', $argv[1] ?? '');
+$name = Cli::ask('Твой никнейм', '\w+');
+$deliveryPolicy = DeliverPolicy::from(Cli::ask('Что подгрузить', 'all|last|new', 'all'));
+Cli::printLn();
+
+$uri = getenv('NATS');
+
+if (!is_string($uri) || $uri === '') {
+    $uri = 'tcp://nats:4222';
+}
+
+$natsCore = new Client(Config::fromURI($uri));
 $jetStream = $natsCore->jetStream();
 
 $subscription = $jetStream
@@ -30,8 +40,7 @@ $subscription = $jetStream
         subjects: ['chat.*'],
     ))
     ->createOrUpdateConsumer(new ConsumerConfig(
-        durableName: "CHAT_{$id}_SENDER_{$name}_DURABLE_NEW",
-        deliverPolicy: DeliverPolicy::New,
+        deliverPolicy: $deliveryPolicy,
         filterSubjects: [
             "chat.{$id}",
         ],
@@ -65,7 +74,12 @@ $input = async(static function () use ($name, $jetStream, $id): void {
     }
 });
 
-Cli::printLn('Ready!');
+Cli::printLn(
+    <<<'TXT'
+        Чат готов! Продуктивного общения :)
+        ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+        TXT,
+);
 
 awaitFirst([
     $input,

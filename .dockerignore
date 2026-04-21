@@ -1,0 +1,6 @@
+*
+!/src
+/src/calculator.php
+/src/student.php
+!/composer.json
+!/composer.lock
