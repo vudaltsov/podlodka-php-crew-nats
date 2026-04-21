@@ -95,11 +95,11 @@ fixer-check: var ## Check code style
 	$(TOOLS) php-cs-fixer fix --diff --verbose --dry-run $(ARGS)
 .PHONY: fixer-check
 
-rector: var ## Apply Rector rules
+rector: var vendor ## Apply Rector rules
 	$(TOOLS) rector process $(ARGS)
 .PHONY: rector
 
-rector-check: var ## Check Rector rules
+rector-check: var vendor ## Check Rector rules
 	$(TOOLS) rector process --dry-run $(ARGS)
 .PHONY: rector-check
 
